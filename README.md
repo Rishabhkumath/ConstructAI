@@ -9,8 +9,8 @@ Construction planning and site intelligence tools: safety review, crack assessme
 3. In **App settings → Secrets**, add:
 
 ```toml
-XAI_API_KEY = "your-xai-api-key"
-XAI_MODEL = "grok-4.7"
+GROQ_API_KEY = "your-groq-api-key"
+GROQ_MODEL = "qwen/qwen3.8-27b"
 ```
 
 4. Deploy. If no key is configured, deterministic demo responses remain available.
@@ -24,7 +24,7 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-Create `backend/.env` using `backend/.env.example` and set `XAI_API_KEY` and `XAI_MODEL`, then run:
+Create `backend/.env` using `backend/.env.example` and set `GROQ_API_KEY` and `GROQ_MODEL`, then run:
 
 ```bash
 streamlit run streamlit_app.py
@@ -34,18 +34,18 @@ streamlit run streamlit_app.py
 
 ```bash
 pip install -r requirements.txt
-# Configure XAI_API_KEY in backend/.env
+# Configure GROQ_API_KEY in backend/.env
 python -m uvicorn backend.main:app --reload
 ```
 
-Open `http://127.0.0.1:8000`; API docs are at `/docs`. API keys are read on the server only; the browser does not accept or store them. `GET /api/health` reports whether the xAI SDK and key are configured.
+Open `http://127.0.0.1:8000`; API docs are at `/docs`. API keys are read on the server only; the browser does not accept or store them. `GET /api/health` reports whether the Groq SDK and key are configured.
 
 ## AI troubleshooting
 
-- This project uses xAI's OpenAI-compatible API at `https://api.x.ai/v1`.
-- The default model is `grok-4.7`; check the xAI console/model list if your account does not have access to it.
-- `ai_ready: true` means the key and SDK are configured; it does not guarantee account credits, model access, or a successful live request.
-- Check the backend terminal for detailed provider errors. Common causes include an invalid key, insufficient credits, rate limits, unsupported model, or network issues.
+- This project uses Groq's OpenAI-compatible API at `https://api.groq.com/openai/v1`.
+- The default model is `qwen/qwen3.8-27b`; check the Groq Console for current model availability and account limits.
+- `ai_ready: true` means the key and SDK are configured; it does not guarantee model access, available quota, or a successful live request.
+- Check the backend terminal for detailed provider errors. Common causes include an invalid key, rate limits, unsupported model, or network issues.
 - Never put API keys in frontend JavaScript, HTML, or a visible input field.
 
 ## API routes

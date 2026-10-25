@@ -1,4 +1,4 @@
-"""Construction intelligence API. Grok AI is optional; deterministic estimates work offline."""
+"""Construction intelligence API. Groq AI is optional; deterministic estimates work offline."""
 from __future__ import annotations
 
 import base64
@@ -114,11 +114,11 @@ def attach_document(result: dict[str, Any], title: str, generate: bool, fmt: str
     return result
 
 def ai_json(feature: str, inputs: dict[str, Any], image: UploadFile | None = None, api_key: str | None = None) -> dict[str, Any] | None:
-    """Call xAI's OpenAI-compatible API. Returns None only when no key is configured."""
-    key = (api_key or os.getenv("XAI_API_KEY", "")).strip()
+    """Call Groq's OpenAI-compatible API. Returns None only when no key is configured."""
+    key = (api_key or os.getenv("GROQ_API_KEY", "")).strip()
     if not key:
         return None
-    model = os.getenv("XAI_MODEL", "grok-4.7")
+    model = os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b")
     try:
         from openai import OpenAI
 
@@ -142,9 +142,9 @@ def ai_json(feature: str, inputs: dict[str, Any], image: UploadFile | None = Non
             encoded = base64.b64encode(raw).decode("ascii")
             content.append({
                 "type": "image_url",
-                "image_url": {"url": f"data:{mime};base64,{encoded}", "detail": "high"},
+                "image_url": {"url": f"data:{mime};base64,{encoded}"},
             })
-        client = OpenAI(api_key=key, base_url="https://api.x.ai/v1", timeout=60.0, max_retries=1)
+        client = OpenAI(api_key=key, base_url="https://api.groq.com/openai/v1", timeout=60.0, max_retries=1)
         response = client.chat.completions.create(
             model=model,
             messages=[
@@ -161,15 +161,15 @@ def ai_json(feature: str, inputs: dict[str, Any], image: UploadFile | None = Non
     except HTTPException:
         raise
     except Exception as exc:
-        logging.exception("xAI Grok request failed for feature %s", feature)
+        logging.exception("Groq request failed for feature %s", feature)
         raise HTTPException(
             status_code=502,
-            detail="Grok request failed. Check XAI_API_KEY, XAI_MODEL access, xAI account credits, rate limits, and backend logs.",
+            detail="Groq request failed. Check GROQ_API_KEY, GROQ_MODEL access, account limits, and backend logs.",
         ) from exc
 
 def configured_api_key(request: Request | None = None) -> str | None:
-    """Read the xAI credential only from server-side environment/secrets."""
-    return os.getenv("XAI_API_KEY", "").strip() or None
+    """Read the Groq credential only from server-side environment/secrets."""
+    return os.getenv("GROQ_API_KEY", "").strip() or None
 
 
 @app.get("/api/health")
@@ -185,8 +185,8 @@ def health(request: Request):
         "ai_configured": key_configured,
         "sdk_installed": sdk_installed,
         "ai_ready": key_configured and sdk_installed,
-        "provider": "xAI Grok",
-        "model": os.getenv("XAI_MODEL", "grok-4.7"),
+        "provider": "Groq",
+        "model": os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b"),
     }
 
 @app.post("/api/safety-monitor")
@@ -197,7 +197,7 @@ async def safety_monitor(request: Request, text: str = Form(""), image: UploadFi
     ai = ai_json("safety_monitor", {"observation": text, "safety_document_text": document_text}, image, configured_api_key(request))
     if ai:
         return ai
-    return {"risk_level": "Review required", "risk_score": 35, "hazards": [{"hazard": "Visual review required", "severity": "Medium", "action": "Have the site safety lead inspect the work area and confirm task-specific controls."}], "ppe": ["Verify hard hats", "Verify high visibility clothing", "Check fall protection where working at height"], "corrective_actions": ["Conduct a toolbox talk before work begins."], "note": "Demo guidance only: configure XAI_API_KEY on the server to enable AI analysis."}
+    return {"risk_level": "Review required", "risk_score": 35, "hazards": [{"hazard": "Visual review required", "severity": "Medium", "action": "Have the site safety lead inspect the work area and confirm task-specific controls."}], "ppe": ["Verify hard hats", "Verify high visibility clothing", "Check fall protection where working at height"], "corrective_actions": ["Conduct a toolbox talk before work begins."], "note": "Demo guidance only: configure GROQ_API_KEY on the server to enable AI analysis."}
 
 @app.post("/api/crack-detection")
 async def crack_detection(request: Request, description: str = Form(""), image: UploadFile | None = File(None)):
@@ -206,7 +206,7 @@ async def crack_detection(request: Request, description: str = Form(""), image: 
     if image and image.content_type not in {"image/jpeg", "image/png", "image/webp"}:
         raise HTTPException(415, "Upload a JPG, PNG, or WebP image.")
     ai = ai_json("crack_diagnosis", {"description": description}, image, configured_api_key(request))
-    return ai or {"classification": "Requires engineer review", "severity": "Undetermined", "observations": [description or "No textual description supplied."], "possible_causes": ["Cause cannot be determined from incomplete evidence."], "actions": ["Record crack width and length, mark both ends, and monitor for change.", "Request an on-site assessment by a qualified structural engineer."], "note": "Demo guidance only; configure XAI_API_KEY on the server to enable AI image analysis."}
+    return ai or {"classification": "Requires engineer review", "severity": "Undetermined", "observations": [description or "No textual description supplied."], "possible_causes": ["Cause cannot be determined from incomplete evidence."], "actions": ["Record crack width and length, mark both ends, and monitor for change.", "Request an on-site assessment by a qualified structural engineer."], "note": "Demo guidance only; configure GROQ_API_KEY on the server to enable AI image analysis."}
 
 @app.post("/api/project-plan")
 def project_plan(req: PlanInput, request: Request):

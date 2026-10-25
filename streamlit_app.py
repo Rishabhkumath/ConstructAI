@@ -65,11 +65,11 @@ def get_secret(name: str, default: str = "") -> str:
     return os.getenv(name, default).strip()
 
 
-API_KEY = get_secret("XAI_API_KEY")
-MODEL = get_secret("XAI_MODEL", "grok-4.7")
-os.environ["XAI_MODEL"] = MODEL
+API_KEY = get_secret("GROQ_API_KEY")
+MODEL = get_secret("GROQ_MODEL", "qwen/qwen3.8-27b")
+os.environ["GROQ_MODEL"] = MODEL
 if API_KEY:
-    os.environ["XAI_API_KEY"] = API_KEY
+    os.environ["GROQ_API_KEY"] = API_KEY
 
 with st.sidebar:
     st.markdown('<div class="brand">🏗 CONSTRUCT<span>AI</span><small>SITE INTELLIGENCE</small></div>', unsafe_allow_html=True)
@@ -121,14 +121,14 @@ def show_result(result: dict, empty: str = "Your analysis will appear here after
     if note:
         st.caption(note)
     if not API_KEY:
-        st.caption("Demo guidance · Add XAI_API_KEY in Streamlit Secrets to enable AI analysis.")
+        st.caption("Demo guidance · Add GROQ_API_KEY in Streamlit Secrets to enable AI analysis.")
 
 
 def call_ai(feature_name: str, inputs: dict, image=None):
     try:
         return ask_ai(feature_name, inputs, image.getvalue() if image else None, image.type if image else None)
     except Exception as exc:
-        st.error(f"AI request failed. Check XAI_API_KEY, XAI_MODEL access, account credits, and network. Details: {exc}")
+        st.error(f"AI request failed. Check GROQ_API_KEY, GROQ_MODEL access, account limits, and network. Details: {exc}")
         return None
 
 
