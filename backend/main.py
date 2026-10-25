@@ -127,7 +127,9 @@ def ai_json(feature: str, inputs: dict[str, Any], image: UploadFile | None = Non
             "text": (
                 "You are a cautious construction site decision-support assistant. "
                 "Return only a valid JSON object. Do not claim professional certification; "
-                "flag uncertainty and recommend qualified inspection when appropriate.\\n"
+                "flag uncertainty and recommend qualified inspection when appropriate. "
+                + ("For construction_chatbot, include a non-empty string field named 'reply' and an optional 'action_suggestions' list. " if feature == "construction_chatbot" else "")
+                + "\\n"
                 + json.dumps({"feature": feature, "inputs": inputs}, ensure_ascii=False)
             ),
         }]
@@ -145,10 +147,13 @@ def ai_json(feature: str, inputs: dict[str, Any], image: UploadFile | None = Non
                 "image_url": {"url": f"data:{mime};base64,{encoded}"},
             })
         client = OpenAI(api_key=key, base_url="https://api.groq.com/openai/v1", timeout=60.0, max_retries=1)
+        system_prompt = "Return only a valid JSON object. Be cautious, evidence-based, and transparent about uncertainty."
+        if feature == "construction_chatbot":
+            system_prompt += " Include a non-empty string field named 'reply' and an optional list named 'action_suggestions'."
         response = client.chat.completions.create(
             model=model,
             messages=[
-                {"role": "system", "content": "Return only a valid JSON object. Be cautious, evidence-based, and transparent about uncertainty."},
+                {"role": "system", "content": system_prompt},
                 {"role": "user", "content": content},
             ],
             response_format={"type": "json_object"},

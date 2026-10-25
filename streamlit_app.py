@@ -269,7 +269,15 @@ elif feature == "Chatbot":
             history = st.session_state.setdefault("chat_history", [])
             history.append({"role": "user", "content": prompt})
             result = call_ai("construction_chatbot", {"query": prompt, "history": history[-10:]})
-            reply = result.get("reply", "") if result else "I can help with construction planning, materials, work sequencing, and site safety. Share the task and conditions for more targeted guidance. Confirm engineering and code decisions with a responsible local professional."
+            reply = ""
+            if isinstance(result, dict):
+                for field in ("reply", "answer", "response", "message", "text", "content"):
+                    candidate = result.get(field)
+                    if isinstance(candidate, str) and candidate.strip():
+                        reply = candidate.strip()
+                        break
+            if not reply:
+                reply = "I can help with construction planning, materials, work sequencing, and site safety. Share the task and conditions for more targeted guidance. Confirm engineering and code decisions with a responsible local professional."
             history.append({"role": "assistant", "content": reply})
             st.rerun()
 
