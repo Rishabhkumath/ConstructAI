@@ -256,17 +256,18 @@ elif feature == "Knowledge Base":
 
 elif feature == "Chatbot":
     title("Construction Chatbot")
+    chat_key = "constructai_groq_chat_history_v2"
     with st.container(border=True):
         chat_area = st.container()
         with chat_area:
-            if not st.session_state.get("chat_history"):
+            if not st.session_state.get(chat_key):
                 st.chat_message("assistant").write("Hello! How can I assist you with your construction query today?")
-            for item in st.session_state.get("chat_history", []):
+            for item in st.session_state.get(chat_key, []):
                 with st.chat_message(item["role"]):
                     st.write(item["content"])
         prompt = st.chat_input("Type your question...")
         if prompt:
-            history = st.session_state.setdefault("chat_history", [])
+            history = st.session_state.setdefault(chat_key, [])
             history.append({"role": "user", "content": prompt})
             result = call_ai("construction_chatbot", {"query": prompt, "history": history[-10:]})
             reply = ""
